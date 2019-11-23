@@ -34,7 +34,9 @@ set.seed(1)
 
 
 # Problem 1
-Load and clean the data for regression analysis (i.e. convert numeric to factor where appropriate, check for missing data, etc.).
+
+Load and clean the data for regression analysis. I converted numeric to factor, checked for missing data.
+
 ```{r}
 data1 = read_csv(file = "./data/birthweight.csv") %>% 
   janitor::clean_names() %>% 
@@ -58,15 +60,15 @@ data1 = data1 %>% drop_na()
 ```
 
 
-Propose a regression model for birthweight. This model may be based on a hypothesized structure for the factors that underly birthweight, on a data-driven model-building process, or a combination of the two. Describe your modeling process and show a plot of model residuals against fitted values – use add_predictions and add_residuals in making this plot.
+Propose a regression model for birthweight. 
 
 ```{r}
-#regression model
 pro_mod = lm(bwt ~ babysex + bhead + blength, data = data1)
+```
 
+Making a plot.
 
-#plot
-
+```{r}
 data11 = data1 %>% 
   modelr::add_residuals(pro_mod) %>% 
    add_predictions(pro_mod) 
@@ -75,25 +77,12 @@ data11 %>%
     ggplot(aes(x = pred, y = resid)) + geom_point()
 
 ```
-description: according to the common aknowledge about factors that may effect birthweight, the most closely relevant factors would be baby's sex, head cricumference, and length at birth. 
+Description: according to the common aknowledge about factors that may effect birthweight, the most closely relevant factors would be baby's sex, head cricumference, and length at birth. 
 
 
 
-Compare your model to two others:
+Compare my model to two others:
 
-One using length at birth and gestational age as predictors (main effects only)
-One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
-
-```{r}
-mod1 = data1 %>% 
-lm(bwt ~ blength + gaweeks, data = .)
-  
-mod2 = data1 %>% 
-    lm(bwt ~ bhead*babysex + blength*babysex + babysex, data = .)
-
-```
-
-Make this comparison in terms of the cross-validated prediction error; use crossv_mc and functions in purrr as appropriate.
 ```{r}
 cv_df1 =
   crossv_mc(data1, 100) %>% 
@@ -104,18 +93,29 @@ cv_df1 =
 
 cv_df11 = 
   cv_df1 %>% 
-  mutate(pro_mod  = map(train, ~lm(bwt ~ babysex + bhead + blength, data = data1)),
-         mod1  = map(train, ~mgcv::gam(y ~ s(x), data = .x)),
-         mod2  = map(train, ~gam(y ~ s(x, k = 30), sp = 10e-6, data = .x))) %>% 
+  mutate(pro_mod  = map(train, ~lm(bwt ~ babysex + bhead + blength, data = .x)),
+         mod1  = map(train, ~lm(bwt ~ babysex + blength, data = .x)),
+         mod2  = map(train, ~lm(bwt ~ babysex * bhead * blength, data = .x))) %>% 
   mutate(rmse_pro = map2_dbl(pro_mod, test, ~rmse(model = .x, data = .y)),
          rmse_mod1 = map2_dbl(mod1, test, ~rmse(model = .x, data = .y)),
          rmse_mod2 = map2_dbl(mod2, test, ~rmse(model = .x, data = .y)))
+
+cv_df11 %>% 
+  select(starts_with("rmse")) %>% 
+pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
+Comparison: From the violin plot of rmse vs model, we can tell that model 2 is the best model (bwt ~ babysex * bhead * blength), the one using head circumference, length, sex, and all interactions (including the three-way interaction) between these.
 
 
 # Problem 2
 
-load in the data
+Load in the data.
 
 ```{r}
 weather_df = 
@@ -131,3 +131,35 @@ weather_df =
   select(name, id, everything())
 
 ```
+Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
+```{r}
+weather_df %>% 
+  
+  modelr::bootstrap(n = 1000) %>% 
+  mutate(
+    models = map(strap, ~lm(y ~ x, data = .x) ),
+    results = map(models, broom::tidy)) %>% 
+  select(-strap, -models) %>% 
+  unnest(results) %>% 
+  group_by(term) %>% 
+  summarize(boot_se = sd(estimate))
+```
+
+
+
+Plot the distribution of your estimates, and describe these in words. 
+```{r}
+
+```
+Description: 
+
+
+Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for r^2 and log(β^0∗β^1). 
+```{r}
+
+```
+
+
+
+Note: broom::glance() is helpful for extracting r^2 from a fitted regression, and broom::tidy() (with some additional wrangling) should help in computing log(β^0∗β^1).
+
