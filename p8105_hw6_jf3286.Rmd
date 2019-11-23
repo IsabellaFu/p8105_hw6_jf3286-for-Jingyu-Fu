@@ -133,13 +133,19 @@ weather_df =
 ```
 Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
 ```{r}
-weather_df %>% 
-  
-  modelr::bootstrap(n = 1000) %>% 
+weather1 = weather_df %>% 
+  modelr::bootstrap(n = 1) %>% 
   mutate(
-    models = map(strap, ~lm(y ~ x, data = .x) ),
-    results = map(models, broom::tidy)) %>% 
-  select(-strap, -models) %>% 
+    models = map(strap, ~lm(tmax ~ tmin, data = .x) ),
+    results = map(models, broom::tidy),
+    results = map(results,log(results[1,2]*results[2,2])) ,
+    rsqrd = map(models, broom::glance),
+    rsqrd = map(rsqrd, pull(r.squared))
+    )
+      
+  
+
+select(-strap, -models) %>% 
   unnest(results) %>% 
   group_by(term) %>% 
   summarize(boot_se = sd(estimate))
