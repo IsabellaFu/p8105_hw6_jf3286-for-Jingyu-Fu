@@ -136,7 +136,7 @@ quantities.
 
 ```{r}
 weather1 = weather_df %>% 
-  modelr::bootstrap(n = 10) 
+  modelr::bootstrap(n = 5000) 
 
 
 weather11 = weather1 %>% 
@@ -152,7 +152,7 @@ select(-strap, -models) %>%
 weather12 = weather1 %>% 
   mutate(
     models = map(strap, ~lm(tmax ~ tmin, data = .x) ),
-    results = map(models, broom::tidy))  
+    results = map(models, broom::tidy)) %>%  
 select(-strap, -models) %>% 
   unnest(results) %>% 
   select(.id,term,estimate) %>% 
@@ -177,13 +177,13 @@ mutate(
 Plot the distribution of my estimates, and describe these in words. 
 ```{r}
 weather11 %>% 
-ggplot(aes(x = id, y = r_squared)) + 
-  geom_point(alpha = .5)
+ggplot(aes(x = r_squared)) +
+ geom_density()
 
 
 weather121 %>% 
-  ggplot(aes(x = id, y = logb)) + 
-  geom_point(alpha = .5)
+  ggplot(aes(x = logb)) +
+ geom_density()
 ```
 Description: 
 
