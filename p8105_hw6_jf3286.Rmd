@@ -51,12 +51,8 @@ data1 = read_csv(file = "./data/birthweight.csv") %>%
     mrace = fct_infreq(mrace)
   )
 
-data1 %>% is.na()
+sum(is.na(data1))
   
-data1 = data1 %>% drop_na()
-
-
-
 ```
 
 
@@ -77,6 +73,7 @@ data11 %>%
     ggplot(aes(x = pred, y = resid)) + geom_point()
 
 ```
+
 Description: according to the common aknowledge about factors that may effect birthweight, the most closely relevant factors would be baby's sex, head cricumference, and length at birth. 
 
 
@@ -110,6 +107,7 @@ pivot_longer(
   mutate(model = fct_inorder(model)) %>% 
   ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
+
 Comparison: From the violin plot of rmse vs model, we can tell that model 2 is the best model (bwt ~ babysex * bhead * blength), the one using head circumference, length, sex, and all interactions (including the three-way interaction) between these.
 
 
@@ -185,7 +183,7 @@ weather121 %>%
   ggplot(aes(x = logb)) +
  geom_density()
 ```
-Description: 
+Description: Both plots have left tails, and a bit skewed. Therefore strict normality doesn't apply to those two estimates. 
 
 
 Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for r^2. 
@@ -193,12 +191,12 @@ Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to pro
 ```{r}
 quantile(pull(weather11, r_squared),c(.025,.975))
 ```
-Therefore, the 95% confidence interval for r^2 is (0.9006987, 0.9185960).
+Therefore, the 95% confidence interval for r^2 is (0.8936877, 0.9274807).
 
 
 Identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for log(β^0∗β^1). 
 ```{r}
 quantile(pull(weather121, logb),c(.025,.975))
 ```
-Therefore, the 95% confidence interval for log(β^0∗β^1) is (1.976589, 2.062677).
+Therefore, the 95% confidence interval for log(β^0∗β^1) is (1.966942, 2.058528).
 
