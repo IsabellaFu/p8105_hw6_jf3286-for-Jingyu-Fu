@@ -55,12 +55,18 @@ sum(is.na(data1))
   
 ```
 
+I checked for the total number of missing data, and the result is 0. Therefore, there's no missing data in this data set. 
 
 Propose a regression model for birthweight. 
 
 ```{r}
 pro_mod = lm(bwt ~ babysex + bhead + blength, data = data1)
 ```
+
+Description: 
+According to the common aknowledge about factors that may effect birthweight, the most closely relevant factors would be baby's sex, head cricumference, and length at birth. Therefore I use baby's sex, head circumference and length at birth as three predictors of my regression model, and baby's birthweight as the outcome.
+
+
 
 Making a plot.
 
@@ -70,13 +76,14 @@ data11 = data1 %>%
    add_predictions(pro_mod) 
    
 data11 %>% 
-    ggplot(aes(x = pred, y = resid)) + geom_point()
+    ggplot(aes(x = pred, y = resid)) + 
+  geom_point()+ 
+  labs(
+    title = "Residuals vs Predictions plot",
+    x = "Predictions",
+    y = "Residuals" )
 
 ```
-
-Description: according to the common aknowledge about factors that may effect birthweight, the most closely relevant factors would be baby's sex, head cricumference, and length at birth. 
-
-
 
 Compare my model to two others:
 
@@ -105,10 +112,15 @@ pivot_longer(
     values_to = "rmse",
     names_prefix = "rmse_") %>% 
   mutate(model = fct_inorder(model)) %>% 
-  ggplot(aes(x = model, y = rmse)) + geom_violin()
+  ggplot(aes(x = model, y = rmse)) + geom_violin()+ 
+  labs(
+    title = "Rmse plot",
+    x = "Models",
+    y = "RMSE" )
 ```
 
-Comparison: From the violin plot of rmse vs model, we can tell that model 2 is the best model (bwt ~ babysex * bhead * blength), the one using head circumference, length, sex, and all interactions (including the three-way interaction) between these.
+Comparison: 
+In this plot, pro_mod is my proposed model, mod 1 is the model using length at birth and gestational age as predictors, mod 2 is the model using head circumference, length, sex, and all interactions (including the three-way interaction) between these. From the violin plot of rmse vs model, we can tell that model two has the lowest rmse.Therefore we can tell that model 2 is the best model (bwt ~ babysex * bhead * blength), the one using head circumference, length, sex, and all interactions (including the three-way interaction) between these.
 
 
 # Problem 2
@@ -129,8 +141,7 @@ weather_df =
   select(name, id, everything())
 
 ```
-Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two 
-quantities.
+Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities.
 
 ```{r}
 weather1 = weather_df %>% 
@@ -176,14 +187,27 @@ Plot the distribution of my estimates, and describe these in words.
 ```{r}
 weather11 %>% 
 ggplot(aes(x = r_squared)) +
- geom_density()
+ geom_density()+ 
+  labs(
+    title = "R squared plot",
+    x = "R squared",
+    y = "Density" )
 
 
 weather121 %>% 
   ggplot(aes(x = logb)) +
- geom_density()
+ geom_density()+ 
+  labs(
+    title = "log(β^0 * β^1) plot",
+    x = "log(β^0 * β^1)",
+    y = "Density" )
 ```
-Description: Both plots have left tails, and a bit skewed. Therefore strict normality doesn't apply to those two estimates. 
+
+Description: 
+
+Distribution of r^2 has a  tail extending to low values,  a bit of a “shoulder”, and a bit of flat "hat",  features that may be related to the frequency with which  outliers are included in the bootstrap sample, and indicates that strict normality doesn't apply. 
+
+Distribution of log(β^0 * β^1) also has a tail extending to low values,  a bit of a “shoulder”, and a bit of skewed "hat",  features that may be related to the frequency with which  outliers are included in the bootstrap sample, and indicates that strict normality doesn't apply.
 
 
 Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for r^2. 
@@ -191,12 +215,14 @@ Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to pro
 ```{r}
 quantile(pull(weather11, r_squared),c(.025,.975))
 ```
+
 Therefore, the 95% confidence interval for r^2 is (0.8936877, 0.9274807).
 
 
-Identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for log(β^0∗β^1). 
+Identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for log(β^0 * β^1). 
 ```{r}
 quantile(pull(weather121, logb),c(.025,.975))
 ```
-Therefore, the 95% confidence interval for log(β^0∗β^1) is (1.966942, 2.058528).
+
+Therefore, the 95% confidence interval for log(β^0 * β^1) is (1.966942, 2.058528).
 
